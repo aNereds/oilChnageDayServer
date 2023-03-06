@@ -1,23 +1,10 @@
-FROM php:8.1-fpm-alpine
+FROM devilbox/php-fpm:8.1-mods
 
-RUN apk add --no-cache curl git build-base zlib-dev oniguruma-dev autoconf bash
+ARG NEW_UID=1000
+ARG NEW_GID=1000
 
-RUN apk add --no-cache libpq-dev && docker-php-ext-install mysqli pdo pdo_mysql
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-ARG PUID=1000
-ARG PGID=1000
-RUN apk --no-cache add shadow && \
-    groupmod -o -g ${PGID} www-data && \
-    usermod -o -u ${PUID} -g www-data www-data
+RUN curl -sS https://get.symfony.com/cli/installer | bash
 
-RUN chown www-data:www-data /var/www
-COPY --chown=www-data:www-data ./ /var/www
-WORKDIR /var/www
-
-USER www-data
-
-COPY --from=composer:2.5.1 /usr/bin/composer /usr/bin/composer
-
-CMD php-fpm
-
-EXPOSE 9000
+RUN mv /root/.symfony5/bin/symfony /usr/local/bin/symfony
