@@ -26,21 +26,32 @@ class UserRegistrationService
         $this->userPasswordHasher = $userPasswordHasher;
     }
 
-    public function registerUser(array $userData): User
+    public function registerUser(string $email, string $password): User
     {
         $user = UserFactory::create();
 
-        $user->setEmail($userData['email']);
+        $user->setEmail($email);
 
         $user->setPassword(
             $this->userPasswordHasher->hashPassword(
                 $user,
-                $userData['password']
+                $password
             )
         );
 
         $this->userRepository->save($user, true);
 
         return $user;
+    }
+
+    /**
+     * Validate is user unique
+     *
+     * @param string $email
+     * @return User|null
+     */
+    public function checkUniqUser(string $email): ?User
+    {
+        return $this->userRepository->findOneBy(['email' => $email]);
     }
 }
