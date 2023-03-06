@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -31,6 +33,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(type: 'boolean')]
     private bool $isVerified = false;
+
+    #[ORM\OneToMany(mappedBy: 'owner', targetEntity: Vehicle::class, orphanRemoval: true)]
+    private Collection $vehicle;
+
+    public function __construct()
+    {
+        $this->vehicle = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -110,6 +120,35 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setIsVerified(bool $isVerified): self
     {
         $this->isVerified = $isVerified;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Vehicle>
+     */
+    public function getVehicle(): Collection
+    {
+        return $this->vehicle;
+    }
+
+    public function addVehicle(Vehicle $vehicle): self
+    {
+        if (!$this->vehicle->contains($vehicle)) {
+            $this->vehicle->add($vehicle);
+            $vehicle->setOwner($this);
+        }
+
+        return $this;
+    }
+
+    public function removeVehicle(Vehicle $vehicle): self
+    {
+        if ($this->vehicle->removeElement($vehicle)) {
+            if ($vehicle->getOwner() === $this) {
+                $vehicle->setOwner(null);
+            }
+        }
 
         return $this;
     }
