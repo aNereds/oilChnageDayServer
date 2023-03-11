@@ -28,18 +28,12 @@ class RegistrationController extends AbstractFOSRestcontroller
         $this->emailVerifierSecurity = $emailVerifierSecurity;
     }
 
-    #[Route('/api/register', name: 'app_register')]
+    #[Route('/api/register', name: 'app_register', methods: 'POST')]
     public function register(
         Request $request,
         ValidatorInterface $validator,
         UserRegistrationService $userRegistrationService
     ): JsonResponse {
-        if ($request->getMethod() !== 'POST') {
-            return $this->json([
-                'message' => 'Only POST requests accepted',
-            ], Response::HTTP_BAD_REQUEST);
-        }
-
         $data = json_decode($request->getContent(), true);
 
         $errors = $validator->validate($data['email'], [
@@ -51,8 +45,6 @@ class RegistrationController extends AbstractFOSRestcontroller
                 'message' => (string)$errors,
             ], Response::HTTP_PARTIAL_CONTENT);
         }
-
-        //TODO: Create validation for password
 
         if ($userRegistrationService->checkUniqUser($data['email'])) {
             return $this->json([
