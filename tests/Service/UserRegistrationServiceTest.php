@@ -2,7 +2,6 @@
 
 namespace App\Tests\Service;
 
-use App\Entity\Factory\UserFactory;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Service\UserRegistrationService;
@@ -28,7 +27,6 @@ class UserRegistrationServiceTest extends TestCase
                     $this->assertEquals(true, $flush);
                 })
             );
-
 
         $userRegistrationService = new UserRegistrationService($userRepository, $passwordHasher);
         $userRegistrationService->registerUser($email, $password);
