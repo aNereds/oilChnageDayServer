@@ -2,19 +2,38 @@
 
 namespace App\Controller\Api;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use App\Entity\Factory\UserFactory;
+use App\Exception\FormException;
+use App\Form\UserType;
 
-class RegisterController extends AbstractController
+use App\Service\UserService;
+use FOS\RestBundle\Controller\AbstractFOSRestController;
+
+use Symfony\Component\{
+    HttpFoundation\Request,
+    HttpFoundation\Response,
+    Routing\Annotation\Route
+};
+
+class RegisterController extends AbstractFOSRestController
 {
     #[Route('/api/register', name: 'app_api_register', methods: 'POST')]
-    public function index(Request $request): Response
+    public function addUser(Request $request, UserService $userService): Response
     {
-        dd($request->getContent());
-        return $this->render('api/register/index.html.twig', [
-            'controller_name' => 'RegisterController',
-        ]);
+        $user = UserFactory::create();
+        $data = json_decode($request->getContent(), true);
+
+        $form = $this->createForm(UserType::class, $user);
+        $form->submit($data);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $userService->registerUser($user);
+
+            $view = $this->view($user, Response::HTTP_OK);
+
+            return $this->handleView($view);
+        }
+
+        throw new FormException($form, Response::HTTP_BAD_REQUEST);
     }
 }
